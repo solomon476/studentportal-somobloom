@@ -1,100 +1,181 @@
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, User, FolderGit2, LogOut, GraduationCap, Bot } from 'lucide-react';
+import { LayoutDashboard, User, LogOut, GraduationCap, Menu, Bell, FolderGit2, Bot } from 'lucide-react';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { useStudent } from '../context/StudentContext';
 import GlobalAiAssistant from '../components/ai/GlobalAiAssistant';
 
 export default function PortalLayout() {
-  const { studentData, logout } = useStudent();
+  const { studentData, logout: studentLogout } = useStudent();
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const navItems = [
     { to: '/student', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/student/portfolio', label: 'Portfolio', icon: FolderGit2 },
-    { to: '/student/ai', label: 'AI Study Center', icon: Bot },
+    { to: '/student/ai-study', label: 'AI Study Center', icon: Bot },
     { to: '/student/profile', label: 'Profile', icon: User },
   ];
 
   const handleLogout = () => {
-    logout();
+    studentLogout();
     navigate('/');
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 relative">
-      {/* Persistent AI Assistant (Gemini-style) */}
+    <div className="flex h-screen bg-white text-slate-900 font-sans overflow-hidden">
       <GlobalAiAssistant />
-
-      {/* Sidebar */}
-      <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-        
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
-          <div className="w-9 h-9 bg-yellow-400 rounded-xl flex items-center justify-center shadow-md shadow-amber-200 dark:shadow-amber-900/50">
-            <GraduationCap size={18} className="text-slate-900" />
+      
+      {/* Sidebar - Hidden on mobile for students */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-white text-slate-600 border-r border-slate-200 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        hidden md:flex flex-col
+      `}>
+        <div className="h-full flex flex-col w-full">
+          {/* Brand */}
+          <div className="p-6 flex items-center gap-3 border-b border-slate-100">
+            <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center shadow-sm">
+              <GraduationCap size={20} className="text-slate-900" />
+            </div>
+            <span className="text-xl font-bold text-slate-900 tracking-tight">Somobloom</span>
           </div>
-          <h1 className="text-lg font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">
-            Student Portal
-          </h1>
-        </div>
 
-        {/* User Info Card */}
-        {studentData && (
-          <div className="mx-3 mt-4 p-3 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 flex items-center gap-3">
-            <img
-              src={studentData.avatarUrl}
-              alt={studentData.name}
-              className="w-10 h-10 rounded-full bg-white border-2 border-white shadow-sm flex-shrink-0"
-            />
-            <div className="min-w-0">
-              <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{studentData.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{studentData.grade}</p>
+          {/* Nav */}
+          <nav className="flex-1 px-3 py-6 space-y-1">
+            <p className="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Student Menu
+            </p>
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/student'}
+                onClick={() => setIsSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'hover:bg-slate-50 hover:text-slate-900'
+                  }`
+                }
+              >
+                <item.icon size={18} />
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* User Bottom Section */}
+          <div className="p-4 border-t border-slate-100">
+            <div className="flex items-center gap-3 p-2 rounded hover:bg-slate-50 transition-colors cursor-pointer group">
+              <div className="w-8 h-8 rounded bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-600 overflow-hidden border border-slate-200">
+                {studentData?.avatarUrl ? (
+                  <img src={studentData.avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  studentData?.name?.charAt(0) || 'U'
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-slate-900 truncate">{studentData?.name}</p>
+                <p className="text-[10px] text-slate-400 truncate">{studentData?.grade}</p>
+              </div>
+              <button onClick={handleLogout} className="text-slate-400 group-hover:text-red-500 transition-colors">
+                <LogOut size={16} />
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      </aside>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 mt-4 space-y-1">
-          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-3 mb-2">Navigation</p>
+      {/* Main Container */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/30">
+        
+        {/* Top Navbar */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-30">
+          
+          {/* Mobile Left Section */}
+          <div className="flex items-center gap-2 md:hidden">
+            <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center shadow-sm">
+              <GraduationCap size={20} className="text-slate-900" />
+            </div>
+            <span className="font-bold text-slate-900 tracking-tight">Somobloom</span>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-2 text-sm text-slate-500 font-medium">
+            <span>Portal</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-slate-900">Student</span>
+          </div>
+
+          <div className="flex items-center gap-3 md:gap-4 relative">
+            <button 
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              className="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative"
+            >
+              <Bell size={20} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+
+            {isNotificationsOpen && (
+              <div className="absolute right-0 top-12 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-900">Notifications</span>
+                  <button onClick={() => setIsNotificationsOpen(false)} className="text-[10px] font-bold text-indigo-600 uppercase">Clear All</button>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {[
+                    { id: 1, title: 'Assignment Due', text: 'Math homework is due today.', time: '2h ago' },
+                    { id: 2, title: 'New Badge!', text: 'You earned the "Fast Learner" badge.', time: '5h ago' },
+                  ].map(n => (
+                    <div key={n.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer text-left">
+                      <p className="text-sm font-bold text-slate-900">{n.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{n.text}</p>
+                      <p className="text-[10px] text-slate-400 mt-2 font-medium">{n.time}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="h-8 w-[1px] bg-slate-200"></div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-slate-700 hidden sm:block">{studentData?.name}</span>
+              <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                {studentData?.name?.charAt(0) || 'U'}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Scrollable Content */}
+        <main className="flex-1 overflow-auto p-4 md:p-8 pb-24 md:pb-8">
+          <div className="max-w-6xl mx-auto h-full">
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </div>
+        </main>
+
+        {/* Bottom Navigation (Student Only) */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around items-center pb-safe">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === '/student'}
               className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive
-                    ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 font-semibold shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
+                `flex flex-col items-center justify-center py-3 px-2 flex-1 transition-colors ${
+                  isActive ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'
                 }`
               }
             >
-              <item.icon size={19} />
-              <span>{item.label}</span>
+              <item.icon size={20} className={`mb-1 ${({isActive}) => isActive ? 'text-blue-600' : ''}`} />
+              <span className="text-[10px] font-medium">{item.label}</span>
             </NavLink>
           ))}
         </nav>
-
-        {/* Logout Button */}
-        <div className="p-3 border-t border-gray-100 dark:border-gray-700">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-all font-medium text-sm group"
-          >
-            <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
-            <span>Exit Portal</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-8 max-w-7xl mx-auto pb-24">
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

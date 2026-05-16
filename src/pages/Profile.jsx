@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useStudent } from '../context/StudentContext';
-import { Camera, Save, X, Edit2, AlertCircle, User } from 'lucide-react';
+import { Camera, Save, X, Edit2, AlertCircle, User, Bot, CheckCircle2, XCircle } from 'lucide-react';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -56,7 +56,9 @@ export default function Profile() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result);
+        const newAvatarUrl = reader.result;
+        setAvatarPreview(newAvatarUrl);
+        updateProfile({ avatarUrl: newAvatarUrl });
       };
       reader.readAsDataURL(file);
     }
@@ -96,20 +98,16 @@ export default function Profile() {
                 ) : (
                   <User className="text-gray-400" size={48} />
                 )}
-                {isEditing && (
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera size={24} />
-                    <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
-                  </label>
-                )}
+                <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera size={24} />
+                  <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+                </label>
               </div>
             </div>
             <div>
               <h3 className="text-xl font-bold">{studentData.name}</h3>
               <p className="text-gray-500 dark:text-gray-400">{studentData.id}</p>
-              {isEditing && (
-                <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Click image to upload new avatar</p>
-              )}
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Click image to upload new avatar</p>
             </div>
           </div>
 
@@ -250,26 +248,31 @@ export default function Profile() {
             </div>
           )}
         </form>
-      </div>
-
-      {/* Demo Controls (Since there's no backend) */}
-      <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-800">
-        <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider mb-4">Demo Controls</h3>
-        <div className="flex items-center justify-between">
+      </div>      {/* AI Assistant Status Header */}
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <Bot className="text-blue-500" size={24} />
+          AI Study Assistant Status
+        </h3>
+        
+        <div className={`flex items-center justify-between p-6 rounded-2xl border ${studentData.aiStudyEnabled ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-gray-50 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700'}`}>
           <div>
-            <p className="font-semibold text-gray-900 dark:text-white">AI Study Assistant</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Simulate a teacher enabling or disabling this feature for your account.</p>
+            <p className="font-semibold text-gray-900 dark:text-white">
+              {studentData.aiStudyEnabled ? 'Activated' : 'Inactive'}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {studentData.aiStudyEnabled 
+                ? 'Your teacher has enabled AI-powered study assistance for your account. You can now access smart tutoring.' 
+                : 'The AI Study Assistant is currently disabled. Your teacher must activate this feature for your account.'}
+            </p>
           </div>
-          <button
-            onClick={() => toggleAiStudy()}
-            className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors ${
-              studentData.aiStudyEnabled
-                ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400'
-                : 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-            }`}
-          >
-            {studentData.aiStudyEnabled ? 'Disable AI (Mock)' : 'Enable AI (Mock)'}
-          </button>
+          <div className="flex-shrink-0">
+            {studentData.aiStudyEnabled ? (
+              <CheckCircle2 className="text-green-500" size={32} />
+            ) : (
+              <XCircle className="text-gray-400" size={32} />
+            )}
+          </div>
         </div>
       </div>
 
