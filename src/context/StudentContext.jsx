@@ -58,12 +58,12 @@ export function StudentProvider({ children }) {
     const newStudent = {
       ...DEFAULT_PORTAL_DATA,
       id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
-      name: profileData.name,
+      name: profileData.name || 'Student Name',
       email: profileData.email,
       phone: profileData.phone || '',
-      grade: profileData.grade,
+      grade: profileData.grade || '10th Grade',
       interests: profileData.interests || '',
-      school: profileData.school || '',
+      school: profileData.school || 'Somobloom High',
       avatarUrl: null,
       aiStudyEnabled: false,
     };
